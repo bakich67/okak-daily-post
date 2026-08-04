@@ -2,19 +2,17 @@ import os
 import requests
 import json
 
-# ---------- Секреты ----------
 BOT_TOKEN = os.environ["TELEGRAM_BOT_TOKEN"]
 CHANNEL_ID = os.environ["TELEGRAM_CHANNEL_ID"]
-DEEPSEEK_API_KEY = os.environ["DEEPSEEK_API_KEY"]
+GROQ_API_KEY = os.environ["GROQ_API_KEY"]
 
-# ---------- Генерация поста через DeepSeek ----------
 def generate_post():
-    url = "https://api.deepseek.com/v1/chat/completions"
+    url = "https://api.groq.com/openai/v1/chat/completions"
     headers = {
-        "Authorization": f"Bearer {DEEPSEEK_API_KEY}",
+        "Authorization": f"Bearer {GROQ_API_KEY}",
         "Content-Type": "application/json"
     }
-    
+
     system_prompt = """Ты — редактор Telegram-канала «О как».
 Твоя задача: найти и описать одну необычную, проверяемую историю (странный факт, забытое изобретение, наука, культура, религия, курьёз).
 Правила:
@@ -36,7 +34,7 @@ def generate_post():
     user_prompt = "Найди и опиши одну необычную историю для канала «О как» по заданной структуре. Укажи источник, дату, страну."
 
     data = {
-        "model": "deepseek-chat",
+        "model": "llama-3.1-8b-instant",
         "messages": [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt}
@@ -47,10 +45,9 @@ def generate_post():
 
     response = requests.post(url, headers=headers, json=data)
     if response.status_code != 200:
-        raise Exception(f"DeepSeek error: {response.text}")
+        raise Exception(f"Groq error: {response.text}")
     return response.json()["choices"][0]["message"]["content"].strip()
 
-# ---------- Отправка в Telegram ----------
 def send_to_telegram(text):
     url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
     payload = {
@@ -63,7 +60,6 @@ def send_to_telegram(text):
     if r.status_code != 200:
         raise Exception(f"Telegram error: {r.text}")
 
-# ---------- Главный блок ----------
 if __name__ == "__main__":
     post = generate_post()
     print("Сгенерирован пост:\n", post)
