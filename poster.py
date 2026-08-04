@@ -31,11 +31,14 @@ def generate_post():
         "после смерти", "загробн", "Васильева", "Блэр", "самооперация",
         "сам себе", "сделал сам себе операцию"
     ]
+    mandatory_sources = ["wikipedia", "britannica", "nature", "science", "bbc", "reuters", "ap", "nasa", "smithsonian", "history"]
 
     system_prompt = f"""Ты — редактор Telegram-канала «О как».
 Твоя задача: Найти и описать одну необычную, РЕАЛЬНУЮ, проверяемую историю.
 Ты имеешь дело с источниками, которым можно верить. 
 НИ В КОЕМ СЛУЧАЕ не выдумывай учёных, врачей, книги и статьи.
+Ты можешь использовать ТОЛЬКО факты, подтверждённые авторитетными источниками: Wikipedia, Britannica, Nature, Science, BBC, Reuters, AP News, NASA, Smithsonian, History Channel.
+Если история не подтверждена такими источниками — НЕ ПИШИ пост.
 Если не можешь найти реальную историю из надёжного источника — верни "Нет подходящей истории".
 ЖЁСТКИЕ ПРАВИЛА:
 - Факт должен быть точным. НИКАКИХ выдумок.
@@ -74,6 +77,10 @@ def generate_post():
 
     if not content or len(content) < 50 or "нечего" in content.lower():
         print("Нет подходящей новости. Пост не публикуется.")
+        return None
+
+    if not any(src in content.lower() for src in mandatory_sources):
+        print("Пост отклонён: нет ссылки на авторитетный источник.")
         return None
 
     for phrase in banned_phrases:
