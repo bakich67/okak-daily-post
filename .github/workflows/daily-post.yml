@@ -1,0 +1,23 @@
+name: Ежедневный пост в Telegram
+
+on:
+  schedule:
+    - cron: '0 9 * * *'    # каждый день в 9:00 UTC (полдень по Москве)
+  workflow_dispatch:        # ручной запуск для теста
+
+jobs:
+  post:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Установка зависимостей
+        run: pip install requests
+      - name: Запуск скрипта
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHANNEL_ID: ${{ secrets.TELEGRAM_CHANNEL_ID }}
+          DEEPSEEK_API_KEY: ${{ secrets.DEEPSEEK_API_KEY }}
+        run: python poster.py
