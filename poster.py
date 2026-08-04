@@ -88,6 +88,8 @@ def generate_post():
             print(f"Пост отклонён: содержит запрещённую тему '{phrase}'.")
             return None
 
+    if not content.endswith("О как"):
+        content = content.rstrip() + "\n\nО как"
     return content
 
 def send_to_telegram(text):
