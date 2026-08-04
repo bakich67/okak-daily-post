@@ -75,12 +75,14 @@ def generate_post():
         raise Exception(f"Groq error: {response.text}")
     content = response.json()["choices"][0]["message"]["content"].strip()
 
-    if not content or len(content) < 50 or "нечего" in content.lower():
+    if not content or len(content) < 50:
         print("Нет подходящей новости. Пост не публикуется.")
+        print("Содержимое ответа:", content)
         return None
 
     if not any(src in content.lower() for src in mandatory_sources):
         print("Пост отклонён: нет ссылки на авторитетный источник.")
+        print("Содержимое поста:", content[:200])
         return None
 
     for phrase in banned_phrases:
