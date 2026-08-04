@@ -75,7 +75,7 @@ def send_to_telegram(text):
     payload = {
         "chat_id": CHANNEL_ID,
         "text": text,
-        "parse_mode": "Markdown",
+        "parse_mode": "HTML",
         "disable_web_page_preview": False
     }
     r = requests.post(url, json=payload)
