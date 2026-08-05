@@ -61,7 +61,7 @@ def generate_post():
     user_prompt = "Найди РЕАЛЬНУЮ необычную историю для канала «О как». Проверь источник. Если история выдумана или источник ненадёжен — не пиши ничего."
 
     data = {
-        "model": "llama-3.1-8b-instant",
+        "model": "llama-3.3-70b-versatile",
         "messages": [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_prompt}
