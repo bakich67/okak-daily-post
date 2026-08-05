@@ -43,7 +43,8 @@ def parse_rss():
             for item in root.findall(".//item"):
                 title = item.find("title").text if item.find("title") is not None else ""
                 link = item.find("link").text if item.find("link") is not None else ""
-                desc = item.find("description").text if item.find("description") is not None else ""
+                desc_elem = item.find("description")
+                desc = desc_elem.text if desc_elem is not None and desc_elem.text is not None else ""
                 all_news.append({
                     "title": title,
                     "link": link,
