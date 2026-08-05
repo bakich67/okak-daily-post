@@ -2,6 +2,8 @@ import os
 import requests
 import json
 import random
+import xml.etree.ElementTree as ET
+from datetime import datetime
 
 BOT_TOKEN = os.environ["TELEGRAM_BOT_TOKEN"]
 CHANNEL_ID = os.environ["TELEGRAM_CHANNEL_ID"]
@@ -17,7 +19,44 @@ CALL_TO_ACTIONS = [
     "Сохраните, чтобы показать друзьям."
 ]
 
-def generate_post():
+banned_phrases = [
+    "Бонсай-кацуши", "кость", "череп", "вырезал себе", "отрезал себе",
+    "Некрополис", "скептик", "фантом", "призрак", "потусторонний",
+    "после смерти", "загробн", "Васильева", "Блэр", "самооперация",
+    "сам себе", "сделал сам себе операцию"
+]
+
+mandatory_sources = ["bbc", "reuters", "atlasobscura", "smithsonian", "history", "sciencedaily", "nasa"]
+
+def parse_rss():
+    try:
+        with open("rss_sources.json", "r") as f:
+            sources = json.load(f)["sources"]
+    except:
+        print("rss_sources.json not found.")
+        return []
+
+    all_news = []
+    for source in sources:
+        try:
+            resp = requests.get(source["url"], timeout=10)
+            root = ET.fromstring(resp.content)
+            for item in root.findall(".//item"):
+                title = item.find("title").text if item.find("title") is not None else ""
+                link = item.find("link").text if item.find("link") is not None else ""
+                desc = item.find("description").text if item.find("description") is not None else ""
+                all_news.append({
+                    "title": title,
+                    "link": link,
+                    "description": desc,
+                    "source": source["name"],
+                    "topic": source["topic"]
+                })
+        except Exception as e:
+            print(f"Failed to parse {source['name']}: {e}")
+    return all_news
+
+def generate_post(news_list):
     url = "https://api.groq.com/openai/v1/chat/completions"
     headers = {
         "Authorization": f"Bearer {GROQ_API_KEY}",
@@ -25,46 +64,37 @@ def generate_post():
     }
 
     cta = random.choice(CALL_TO_ACTIONS)
-    banned_phrases = [
-        "Бонсай-кацуши", "кость", "череп", "вырезал себе", "отрезал себе",
-        "Некрополис", "скептик", "фантом", "призрак", "потусторонний",
-        "после смерти", "загробн", "Васильева", "Блэр", "самооперация",
-        "сам себе", "сделал сам себе операцию"
-    ]
-    mandatory_sources = ["wikipedia", "britannica", "nature", "science", "bbc", "reuters", "ap", "nasa", "smithsonian", "history"]
+
+    if news_list and len(news_list) > 0:
+        news_item = random.choice(news_list)
+        real_context = f"Real news: {news_item['title']}. Source: {news_item['source']}. Link: {news_item['link']}. Description: {news_item['description'][:300]}"
+    else:
+        real_context = "No RSS news found. Use your own knowledge of real historical facts, verified by Wikipedia or Britannica. DO NOT invent."
 
     system_prompt = f"""Ты — редактор Telegram-канала «О как».
-Твоя задача: Найти и описать одну необычную, РЕАЛЬНУЮ, проверяемую историю.
-Ты имеешь дело с источниками, которым можно верить. 
-НИ В КОЕМ СЛУЧАЕ не выдумывай учёных, врачей, книги и статьи.
-Ты можешь использовать ТОЛЬКО факты, подтверждённые авторитетными источниками: Wikipedia, Britannica, Nature, Science, BBC, Reuters, AP News, NASA, Smithsonian, History Channel.
-Если история не подтверждена такими источниками — НЕ ПИШИ пост.
-Если не можешь найти реальную историю из надёжного источника — верни "Нет подходящей истории".
+{real_context}
+Напиши пост (600–900 знаков) на основе этой новости или факта.
 ЖЁСТКИЕ ПРАВИЛА:
 - Факт должен быть точным. НИКАКИХ выдумок.
 - Не обобщай сведения о целых народах.
-- Если информация хоть немного сомнительная — НЕ ПИШИ пост. Лучше промолчать, чем соврать.
+- Если информация хоть немного сомнительная — верни "Нет подходящей истории".
 - Стиль: жёсткий, короткие формулировки, максимум 3-4 предложения в абзаце, никаких комплиментов, лести, мотивационных фраз. Простые слова, как умный человек рассказывает другу.
-- Источник ОБЯЗАТЕЛЕН: реальная книга, статья, исследование с автором и годом. НИКАКИХ выдуманных книг.
 - Ты пишешь СВЯЗНЫЙ текст, а не список. Никаких "Заголовок:", "Факт:", "Объяснение:" — просто рассказ.
 - Структура внутри текста:
   1. Первое предложение — интрига или вопрос.
   2. Дальше — неожиданный факт и простое объяснение.
   3. Короткая шутка или живой образ.
-  4. Доказательство (источник, дата, страна, ссылка).
+  4. Доказательство (источник, дата, ссылка).
   5. В конце — ОДИН призыв к действию: «{cta}»
   6. Подпись: «О как»
-- Длина текста: 600–900 знаков.
 - Главный критерий: «Захочет ли человек переслать это другу или рассказать за столом?»
-- ЕСЛИ НЕТ ПОДХОДЯЩЕЙ НОВОСТИ — верни пустой ответ (ничего не пиши)."""
-
-    user_prompt = "Найди РЕАЛЬНУЮ необычную историю для канала «О как». Проверь источник. Если история выдумана или источник ненадёжен — не пиши ничего."
+- ЕСЛИ НЕТ ПОДХОДЯЩЕЙ НОВОСТИ — верни пустой ответ."""
 
     data = {
         "model": "llama-3.3-70b-versatile",
         "messages": [
             {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_prompt}
+            {"role": "user", "content": "Напиши пост для канала «О как» на основе предоставленной новости."}
         ],
         "temperature": 0.5,
         "max_tokens": 1200
@@ -77,12 +107,6 @@ def generate_post():
 
     if not content or len(content) < 50:
         print("Нет подходящей новости. Пост не публикуется.")
-        print("Содержимое ответа:", content)
-        return None
-
-    if not any(src in content.lower() for src in mandatory_sources):
-        print("Пост отклонён: нет ссылки на авторитетный источник.")
-        print("Содержимое поста:", content[:200])
         return None
 
     for phrase in banned_phrases:
@@ -107,9 +131,11 @@ def send_to_telegram(text):
         raise Exception(f"Telegram error: {r.text}")
 
 if __name__ == "__main__":
-    post = generate_post()
+    all_news = parse_rss()
+    print(f"Найдено новостей из RSS: {len(all_news)}")
+    post = generate_post(all_news)
     if post is None:
-        print("Пост не опубликован: нет проверенной истории.")
+        print("Пост не опубликован.")
     else:
         print("Сгенерирован пост:\n", post)
         send_to_telegram(post)
