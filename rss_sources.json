@@ -1,0 +1,39 @@
+{
+    "sources": [
+        {
+            "name": "BBC News World",
+            "url": "https://feeds.bbci.co.uk/news/world/rss.xml",
+            "topic": "world"
+        },
+        {
+            "name": "Reuters Oddly Enough",
+            "url": "https://www.reuters.com/arc/outboundfeeds/v3/all/?outputType=xml",
+            "topic": "odd"
+        },
+        {
+            "name": "Atlas Obscura",
+            "url": "https://www.atlasobscura.com/feeds/latest",
+            "topic": "curious"
+        },
+        {
+            "name": "Smithsonian Magazine",
+            "url": "https://www.smithsonianmag.com/rss/latest_articles/",
+            "topic": "history"
+        },
+        {
+            "name": "History.com",
+            "url": "https://www.history.com/.rss/full/this-day-in-history",
+            "topic": "history"
+        },
+        {
+            "name": "Science Daily Strange",
+            "url": "https://www.sciencedaily.com/rss/strange_offbeat.xml",
+            "topic": "science"
+        },
+        {
+            "name": "NASA APOD",
+            "url": "https://apod.nasa.gov/apod.rss",
+            "topic": "science"
+        }
+    ]
+}
