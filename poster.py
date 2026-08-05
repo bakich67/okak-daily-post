@@ -58,7 +58,7 @@ def parse_rss():
 
 def wow_score(item):
     score = 0
-    title = item.get("title", "")
+    title = item.get("title") or ""
     if 40 <= len(title) <= 80:
         score += 3
     elif len(title) < 40:
