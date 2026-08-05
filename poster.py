@@ -4,6 +4,7 @@ import json
 import random
 import xml.etree.ElementTree as ET
 from datetime import datetime
+import re
 
 BOT_TOKEN = os.environ["TELEGRAM_BOT_TOKEN"]
 CHANNEL_ID = os.environ["TELEGRAM_CHANNEL_ID"]
@@ -25,8 +26,6 @@ banned_phrases = [
     "после смерти", "загробн", "Васильева", "Блэр", "самооперация",
     "сам себе", "сделал сам себе операцию"
 ]
-
-mandatory_sources = ["bbc", "reuters", "atlasobscura", "smithsonian", "history", "sciencedaily", "nasa"]
 
 def parse_rss():
     try:
@@ -56,7 +55,44 @@ def parse_rss():
             print(f"Failed to parse {source['name']}: {e}")
     return all_news
 
-def generate_post(news_list):
+def wow_score(item):
+    """Оценивает 'вау-эффект' заголовка. Выше score = лучше для пересылки."""
+    score = 0
+    title = item.get("title", "")
+    # Короткие заголовки лучше (40-80 символов — оптимум)
+    if 40 <= len(title) <= 80:
+        score += 3
+    elif len(title) < 40:
+        score += 1
+    # Числа в заголовке повышают интерес
+    if re.search(r'\d', title):
+        score += 2
+    # Вопросительные заголовки вовлекают
+    if "?" in title:
+        score += 2
+    # Неожиданность: слова-маркеры
+    wow_words = ["необычн", "странн", "удивительн", "шокирующ", "рекорд", "впервые", "тайна", "загадка", "феномен", "невероятн", "редк", "unique", "strange", "bizarre", "unusual", "incredible", "first ever", "mystery", "phenomenon"]
+    for word in wow_words:
+        if word.lower() in title.lower():
+            score += 3
+            break
+    # Источник с репутацией
+    trusted = ["BBC", "Reuters", "Smithsonian", "Atlas Obscura", "History", "Science Daily", "NASA"]
+    if any(t in item.get("source", "") for t in trusted):
+        score += 2
+    return score
+
+def select_best_news(news_list):
+    """Выбирает новость с максимальным вау-эффектом."""
+    if not news_list:
+        return None
+    scored = [(wow_score(item), item) for item in news_list]
+    scored.sort(key=lambda x: x[0], reverse=True)
+    best_score, best_item = scored[0]
+    print(f"Лучшая новость (score {best_score}): {best_item['title'][:100]}")
+    return best_item if best_score >= 3 else None  # Порог — минимум 3 балла
+
+def generate_post(news_item):
     url = "https://api.groq.com/openai/v1/chat/completions"
     headers = {
         "Authorization": f"Bearer {GROQ_API_KEY}",
@@ -64,20 +100,14 @@ def generate_post(news_list):
     }
 
     cta = random.choice(CALL_TO_ACTIONS)
-
-    if news_list and len(news_list) > 0:
-        news_item = random.choice(news_list)
-        real_context = f"Real news: {news_item['title']}. Source: {news_item['source']}. Link: {news_item['link']}. Description: {news_item['description'][:300]}"
-    else:
-        real_context = "No RSS news found. Use your own knowledge of real historical facts, verified by Wikipedia or Britannica. DO NOT invent."
+    real_context = f"Real news: {news_item['title']}. Source: {news_item['source']}. Link: {news_item['link']}. Description: {news_item['description'][:300]}"
 
     system_prompt = f"""Ты — редактор Telegram-канала «О как».
 {real_context}
-Напиши пост (600–900 знаков) на основе этой новости или факта.
+Напиши пост (600–900 знаков) на основе этой новости.
 ЖЁСТКИЕ ПРАВИЛА:
 - Факт должен быть точным. НИКАКИХ выдумок.
 - Не обобщай сведения о целых народах.
-- Если информация хоть немного сомнительная — верни "Нет подходящей истории".
 - Стиль: жёсткий, короткие формулировки, максимум 3-4 предложения в абзаце, никаких комплиментов, лести, мотивационных фраз. Простые слова, как умный человек рассказывает другу.
 - Ты пишешь СВЯЗНЫЙ текст, а не список. Никаких "Заголовок:", "Факт:", "Объяснение:" — просто рассказ.
 - Структура внутри текста:
@@ -87,8 +117,7 @@ def generate_post(news_list):
   4. Доказательство (источник, дата, ссылка).
   5. В конце — ОДИН призыв к действию: «{cta}»
   6. Подпись: «О как»
-- Главный критерий: «Захочет ли человек переслать это другу или рассказать за столом?»
-- ЕСЛИ НЕТ ПОДХОДЯЩЕЙ НОВОСТИ — верни пустой ответ."""
+- Главный критерий: «Захочет ли человек переслать это другу или рассказать за столом?»"""
 
     data = {
         "model": "llama-3.3-70b-versatile",
@@ -106,7 +135,7 @@ def generate_post(news_list):
     content = response.json()["choices"][0]["message"]["content"].strip()
 
     if not content or len(content) < 50:
-        print("Нет подходящей новости. Пост не публикуется.")
+        print("Пустой ответ от Groq.")
         return None
 
     for phrase in banned_phrases:
@@ -133,10 +162,14 @@ def send_to_telegram(text):
 if __name__ == "__main__":
     all_news = parse_rss()
     print(f"Найдено новостей из RSS: {len(all_news)}")
-    post = generate_post(all_news)
-    if post is None:
-        print("Пост не опубликован.")
+    best_news = select_best_news(all_news)
+    if best_news is None:
+        print("Нет новости с достаточным вау-эффектом. Пост не публикуется.")
     else:
-        print("Сгенерирован пост:\n", post)
-        send_to_telegram(post)
-        print("Пост отправлен в канал")
+        post = generate_post(best_news)
+        if post is None:
+            print("Пост не опубликован.")
+        else:
+            print("Сгенерирован пост:\n", post)
+            send_to_telegram(post)
+            print("Пост отправлен в канал")
