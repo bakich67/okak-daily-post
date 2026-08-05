@@ -1,4 +1,3 @@
-import re
 import os
 import requests
 import json
@@ -57,41 +56,34 @@ def parse_rss():
     return all_news
 
 def wow_score(item):
-    """Оценивает 'вау-эффект' заголовка. Выше score = лучше для пересылки."""
     score = 0
     title = item.get("title", "")
-    # Короткие заголовки лучше (40-80 символов — оптимум)
     if 40 <= len(title) <= 80:
         score += 3
     elif len(title) < 40:
         score += 1
-    # Числа в заголовке повышают интерес
     if re.search(r'\d', title):
         score += 2
-    # Вопросительные заголовки вовлекают
     if "?" in title:
         score += 2
-    # Неожиданность: слова-маркеры
     wow_words = ["необычн", "странн", "удивительн", "шокирующ", "рекорд", "впервые", "тайна", "загадка", "феномен", "невероятн", "редк", "unique", "strange", "bizarre", "unusual", "incredible", "first ever", "mystery", "phenomenon"]
     for word in wow_words:
         if word.lower() in title.lower():
             score += 3
             break
-    # Источник с репутацией
     trusted = ["BBC", "Reuters", "Smithsonian", "Atlas Obscura", "History", "Science Daily", "NASA"]
     if any(t in item.get("source", "") for t in trusted):
         score += 2
     return score
 
 def select_best_news(news_list):
-    """Выбирает новость с максимальным вау-эффектом."""
     if not news_list:
         return None
     scored = [(wow_score(item), item) for item in news_list]
     scored.sort(key=lambda x: x[0], reverse=True)
     best_score, best_item = scored[0]
     print(f"Лучшая новость (score {best_score}): {best_item['title'][:100]}")
-    return best_item if best_score >= 3 else None  # Порог — минимум 3 балла
+    return best_item if best_score >= 3 else None
 
 def generate_post(news_item):
     url = "https://api.groq.com/openai/v1/chat/completions"
@@ -144,7 +136,7 @@ def generate_post(news_item):
             print(f"Пост отклонён: содержит запрещённую тему '{phrase}'.")
             return None
 
-        content = re.sub(r'\n*О как\s*$', '', content).rstrip()
+    content = re.sub(r'\n*О как\s*$', '', content).rstrip()
     content = content + "\n\nО как"
     return content
 
