@@ -138,6 +138,13 @@ def generate_post(news_item):
             print(f"Пост отклонён: содержит запрещённую тему '{phrase}'.")
             return None
 
+    # Проверка языка
+    russian_chars = len(re.findall(r'[а-яёА-ЯЁ]', content))
+    total_chars = len(re.sub(r'\s', '', content))
+    if total_chars > 0 and russian_chars / total_chars < 0.5:
+        print("Пост отклонён: меньше 50% русских букв. Язык не русский.")
+        return None
+
     content = re.sub(r'\n*О как\s*$', '', content).rstrip()
     content = content + "\n\nО как"
     return content
