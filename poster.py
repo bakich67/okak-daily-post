@@ -113,6 +113,7 @@ def generate_post(news_item):
   6. Подпись: «О как»
 - Главный критерий: «Захочет ли человек переслать это другу или рассказать за столом?»
 - Пиши ТОЛЬКО на русском языке. Если источник на английском — переведи, но сохрани смысл."""
+
     data = {
         "model": "llama-3.3-70b-versatile",
         "messages": [
@@ -154,16 +155,19 @@ def send_to_telegram(text):
         raise Exception(f"Telegram error: {r.text}")
 
 if __name__ == "__main__":
-    all_news = parse_rss()
-    print(f"Найдено новостей из RSS: {len(all_news)}")
-    best_news = select_best_news(all_news)
-    if best_news is None:
-        print("Нет новости с достаточным вау-эффектом. Пост не публикуется.")
-    else:
-        post = generate_post(best_news)
-        if post is None:
-            print("Пост не опубликован.")
+    try:
+        all_news = parse_rss()
+        print(f"Найдено новостей из RSS: {len(all_news)}")
+        best_news = select_best_news(all_news)
+        if best_news is None:
+            print("Нет новости с достаточным вау-эффектом. Пост не публикуется.")
         else:
-            print("Сгенерирован пост:\n", post)
-            send_to_telegram(post)
-            print("Пост отправлен в канал")
+            post = generate_post(best_news)
+            if post is None:
+                print("Пост не опубликован.")
+            else:
+                print("Сгенерирован пост:\n", post)
+                send_to_telegram(post)
+                print("Пост отправлен в канал")
+    except Exception as e:
+        print(f"Критическая ошибка: {e}")
