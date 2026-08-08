@@ -42,11 +42,10 @@ def save_used_keys(keys):
         pickle.dump(keys, f)
 
 def get_news_key(item):
-    # Нормализуем заголовок: удаляем всё, кроме букв и цифр, в нижний регистр
-    title = re.sub(r'[^a-zа-яё0-9]', '', (item.get("title") or "").lower())
+    # Очищаем ссылку: убираем всё после '?'
+    link = (item.get("link") or "").split('?')[0]
     source = item.get("source", "")
-    # Обрезаем до 80 символов для единообразия
-    raw = f"{source}:{title[:80]}"
+    raw = f"{source}:{link}"
     return hashlib.md5(raw.encode()).hexdigest()
 
 def parse_rss():
