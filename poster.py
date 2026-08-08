@@ -27,26 +27,18 @@ banned_phrases = [
     "сам себе", "сделал сам себе операцию"
 ]
 
-USED_KEYS_FILE = "used_news_keys.json"
+USED_LINKS_FILE = "used_links.json"
 
-def load_used_keys():
+def load_used_links():
     try:
-        with open(USED_KEYS_FILE, "r") as f:
+        with open(USED_LINKS_FILE, "r") as f:
             return set(json.load(f))
     except:
         return set()
 
-def save_used_key(key):
-    used = load_used_keys()
-    used.add(key)
-    with open(USED_KEYS_FILE, "w") as f:
-        json.dump(list(used), f)
-
-def get_news_key(item):
-    # Уникальный ключ: первые 100 символов заголовка + источник
-    title = (item.get("title") or "").strip()[:100]
-    source = item.get("source", "")
-    return f"{source}:{title}"
+def save_used_links(links):
+    with open(USED_LINKS_FILE, "w") as f:
+        json.dump(list(links), f)
 
 def parse_rss():
     try:
@@ -101,8 +93,8 @@ def wow_score(item):
 def select_best_news(news_list):
     if not news_list:
         return None
-    used_keys = load_used_keys()
-    fresh_news = [item for item in news_list if get_news_key(item) not in used_keys]
+    used_links = load_used_links()
+    fresh_news = [item for item in news_list if item["link"] not in used_links]
     if not fresh_news:
         print("Все новости уже были использованы. Пост не публикуется.")
         return None
@@ -202,6 +194,9 @@ if __name__ == "__main__":
                 print("Сгенерирован пост:\n", post)
                 send_to_telegram(post)
                 print("Пост отправлен в канал")
-                save_used_key(get_news_key(best_news))
+                # Сохраняем ссылку и сразу записываем файл
+                used = load_used_links()
+                used.add(best_news["link"])
+                save_used_links(used)
     except Exception as e:
         print(f"Критическая ошибка: {e}")
