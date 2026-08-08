@@ -3,8 +3,9 @@ import requests
 import json
 import random
 import xml.etree.ElementTree as ET
-from datetime import datetime
+from datetime import datetime, timedelta
 import re
+from dateutil import parser
 
 BOT_TOKEN = os.environ["TELEGRAM_BOT_TOKEN"]
 CHANNEL_ID = os.environ["TELEGRAM_CHANNEL_ID"]
@@ -27,22 +28,6 @@ banned_phrases = [
     "сам себе", "сделал сам себе операцию"
 ]
 
-USED_LINKS_FILE = "used_links.json"
-
-def load_used_links():
-    try:
-        with open(USED_LINKS_FILE, "r") as f:
-            return set(json.load(f))
-    except:
-        return set()
-
-def save_used_links(links):
-    with open(USED_LINKS_FILE, "w") as f:
-        json.dump(list(links), f)
-
-def clean_link(link):
-    return link.split('?')[0]
-
 def parse_rss():
     try:
         with open("rss_sources.json", "r") as f:
@@ -52,6 +37,8 @@ def parse_rss():
         return []
 
     all_news = []
+    cutoff_date = datetime.utcnow() - timedelta(days=1)
+
     for source in sources:
         try:
             resp = requests.get(source["url"], timeout=10)
@@ -61,13 +48,26 @@ def parse_rss():
                 link = item.find("link").text if item.find("link") is not None else ""
                 desc_elem = item.find("description")
                 desc = desc_elem.text if desc_elem is not None and desc_elem.text is not None else ""
-                all_news.append({
-                    "title": title,
-                    "link": link,
-                    "description": desc,
-                    "source": source["name"],
-                    "topic": source["topic"]
-                })
+                
+                pub_date_str = item.find("pubDate").text if item.find("pubDate") is not None else ""
+                if not pub_date_str:
+                    dc_date = item.find("{http://purl.org/dc/elements/1.1/}date")
+                    if dc_date is not None:
+                        pub_date_str = dc_date.text
+
+                if pub_date_str:
+                    try:
+                        pub_date = parser.parse(pub_date_str).replace(tzinfo=None)
+                        if pub_date >= cutoff_date:
+                            all_news.append({
+                                "title": title,
+                                "link": link,
+                                "description": desc,
+                                "source": source["name"],
+                                "topic": source["topic"]
+                            })
+                    except:
+                        continue
         except Exception as e:
             print(f"Failed to parse {source['name']}: {e}")
     return all_news
@@ -96,12 +96,7 @@ def wow_score(item):
 def select_best_news(news_list):
     if not news_list:
         return None
-    used_links = load_used_links()
-    fresh_news = [item for item in news_list if clean_link(item["link"]) not in used_links]
-    if not fresh_news:
-        print("Все новости уже были использованы. Пост не публикуется.")
-        return None
-    scored = [(wow_score(item), item) for item in fresh_news]
+    scored = [(wow_score(item), item) for item in news_list]
     scored.sort(key=lambda x: x[0], reverse=True)
     best_score, best_item = scored[0]
     print(f"Лучшая новость (score {best_score}): {best_item['title'][:100]}")
@@ -159,7 +154,7 @@ def generate_post(news_item):
             print(f"Пост отклонён: содержит запрещённую тему '{phrase}'.")
             return None
 
-    # Проверка языка – жёсткая
+    # Проверка языка
     russian_chars = len(re.findall(r'[а-яёА-ЯЁ]', content))
     total_chars = len(re.sub(r'\s', '', content))
     if total_chars == 0 or russian_chars / total_chars < 0.5:
@@ -185,7 +180,7 @@ def send_to_telegram(text):
 if __name__ == "__main__":
     try:
         all_news = parse_rss()
-        print(f"Найдено новостей из RSS: {len(all_news)}")
+        print(f"Найдено свежих новостей (за 24 часа): {len(all_news)}")
         best_news = select_best_news(all_news)
         if best_news is None:
             print("Нет подходящей новости. Пост не публикуется.")
@@ -197,9 +192,5 @@ if __name__ == "__main__":
                 print("Сгенерирован пост:\n", post)
                 send_to_telegram(post)
                 print("Пост отправлен в канал")
-                # Сохраняем ссылку
-                used = load_used_links()
-                used.add(clean_link(best_news["link"]))
-                save_used_links(used)
     except Exception as e:
         print(f"Критическая ошибка: {e}")
