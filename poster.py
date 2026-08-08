@@ -27,6 +27,27 @@ banned_phrases = [
     "сам себе", "сделал сам себе операцию"
 ]
 
+USED_KEYS_FILE = "used_news_keys.json"
+
+def load_used_keys():
+    try:
+        with open(USED_KEYS_FILE, "r") as f:
+            return set(json.load(f))
+    except:
+        return set()
+
+def save_used_key(key):
+    used = load_used_keys()
+    used.add(key)
+    with open(USED_KEYS_FILE, "w") as f:
+        json.dump(list(used), f)
+
+def get_news_key(item):
+    # Уникальный ключ: первые 100 символов заголовка + источник
+    title = (item.get("title") or "").strip()[:100]
+    source = item.get("source", "")
+    return f"{source}:{title}"
+
 def parse_rss():
     try:
         with open("rss_sources.json", "r") as f:
@@ -80,7 +101,12 @@ def wow_score(item):
 def select_best_news(news_list):
     if not news_list:
         return None
-    scored = [(wow_score(item), item) for item in news_list]
+    used_keys = load_used_keys()
+    fresh_news = [item for item in news_list if get_news_key(item) not in used_keys]
+    if not fresh_news:
+        print("Все новости уже были использованы. Пост не публикуется.")
+        return None
+    scored = [(wow_score(item), item) for item in fresh_news]
     scored.sort(key=lambda x: x[0], reverse=True)
     best_score, best_item = scored[0]
     print(f"Лучшая новость (score {best_score}): {best_item['title'][:100]}")
@@ -167,7 +193,7 @@ if __name__ == "__main__":
         print(f"Найдено новостей из RSS: {len(all_news)}")
         best_news = select_best_news(all_news)
         if best_news is None:
-            print("Нет новости с достаточным вау-эффектом. Пост не публикуется.")
+            print("Нет подходящей новости. Пост не публикуется.")
         else:
             post = generate_post(best_news)
             if post is None:
@@ -176,5 +202,6 @@ if __name__ == "__main__":
                 print("Сгенерирован пост:\n", post)
                 send_to_telegram(post)
                 print("Пост отправлен в канал")
+                save_used_key(get_news_key(best_news))
     except Exception as e:
         print(f"Критическая ошибка: {e}")
