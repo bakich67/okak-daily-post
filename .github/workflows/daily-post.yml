@@ -2,7 +2,7 @@ name: Ежедневный пост в Telegram
 
 on:
   schedule:
-   - cron: '0 15 * * *'
+    - cron: '0 15 * * *'
   workflow_dispatch:
 
 jobs:
@@ -10,6 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
@@ -21,3 +23,11 @@ jobs:
           TELEGRAM_CHANNEL_ID: ${{ secrets.TELEGRAM_CHANNEL_ID }}
           GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
         run: python poster.py
+      - name: Commit used links
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@github.com"
+          git add used_links.json
+          git diff --staged --quiet || (git commit -m "Update used links" && git push https://${{ secrets.GH_PAT }}@github.com/${{ github.repository }}.git HEAD:main)
+        env:
+          GH_PAT: ${{ secrets.GH_PAT }}
