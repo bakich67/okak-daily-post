@@ -19,9 +19,9 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: used_news_keys_cache.pkl
-          key: used-news-keys-${{ hashFiles('rss_sources.json') }}
+          key: used-news-keys-v2-${{ hashFiles('rss_sources.json') }}
           restore-keys: |
-            used-news-keys-
+            used-news-keys-v2-
 
       - name: Install dependencies
         run: pip install requests lxml
@@ -37,6 +37,5 @@ jobs:
         uses: actions/cache/save@v4
         with:
           path: used_news_keys_cache.pkl
-          key: used-news-keys-${{ hashFiles('rss_sources.json') }}
-        # Сохраняем даже при ошибке, чтобы не терять прогресс
+          key: used-news-keys-v2-${{ hashFiles('rss_sources.json') }}
         if: always()
