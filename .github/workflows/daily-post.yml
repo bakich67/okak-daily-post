@@ -16,7 +16,7 @@ jobs:
         with:
           python-version: '3.11'
       - name: Установка зависимостей
-        run: pip install requests lxml
+        run: pip install requests lxml python-dateutil
       - name: Запуск скрипта
         env:
           TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
