@@ -5,6 +5,8 @@ import random
 import xml.etree.ElementTree as ET
 from datetime import datetime
 import re
+import hashlib
+import pickle
 
 BOT_TOKEN = os.environ["TELEGRAM_BOT_TOKEN"]
 CHANNEL_ID = os.environ["TELEGRAM_CHANNEL_ID"]
@@ -27,18 +29,23 @@ banned_phrases = [
     "сам себе", "сделал сам себе операцию"
 ]
 
-USED_LINKS_FILE = "used_links.json"
+CACHE_FILE = "used_news_keys_cache.pkl"
 
-def load_used_links():
-    try:
-        with open(USED_LINKS_FILE, "r") as f:
-            return set(json.load(f))
-    except:
-        return set()
+def load_used_keys():
+    if os.path.exists(CACHE_FILE):
+        with open(CACHE_FILE, "rb") as f:
+            return pickle.load(f)
+    return set()
 
-def save_used_links(links):
-    with open(USED_LINKS_FILE, "w") as f:
-        json.dump(list(links), f)
+def save_used_keys(keys):
+    with open(CACHE_FILE, "wb") as f:
+        pickle.dump(keys, f)
+
+def get_news_key(item):
+    title = (item.get("title") or "").strip()[:100]
+    source = item.get("source", "")
+    raw = f"{source}:{title}"
+    return hashlib.md5(raw.encode()).hexdigest()
 
 def parse_rss():
     try:
@@ -93,8 +100,8 @@ def wow_score(item):
 def select_best_news(news_list):
     if not news_list:
         return None
-    used_links = load_used_links()
-    fresh_news = [item for item in news_list if item["link"] not in used_links]
+    used_keys = load_used_keys()
+    fresh_news = [item for item in news_list if get_news_key(item) not in used_keys]
     if not fresh_news:
         print("Все новости уже были использованы. Пост не публикуется.")
         return None
@@ -194,9 +201,8 @@ if __name__ == "__main__":
                 print("Сгенерирован пост:\n", post)
                 send_to_telegram(post)
                 print("Пост отправлен в канал")
-                # Сохраняем ссылку и сразу записываем файл
-                used = load_used_links()
-                used.add(best_news["link"])
-                save_used_links(used)
+                used = load_used_keys()
+                used.add(get_news_key(best_news))
+                save_used_keys(used)
     except Exception as e:
         print(f"Критическая ошибка: {e}")
