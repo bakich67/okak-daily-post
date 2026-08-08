@@ -21,18 +21,23 @@
             "topic": "history"
         },
         {
-            "name": "History.com",
+            "name": "History.com This Day in History",
             "url": "https://www.history.com/.rss/full/this-day-in-history",
             "topic": "history"
         },
         {
-            "name": "Science Daily Strange",
+            "name": "Science Daily Strange & Offbeat",
             "url": "https://www.sciencedaily.com/rss/strange_offbeat.xml",
             "topic": "science"
         },
         {
             "name": "NASA APOD",
             "url": "https://apod.nasa.gov/apod.rss",
+            "topic": "science"
+        },
+        {
+            "name": "Science Daily Top News",
+            "url": "https://www.sciencedaily.com/rss/top.xml",
             "topic": "science"
         }
     ]
