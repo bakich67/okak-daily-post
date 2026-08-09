@@ -13,9 +13,9 @@ CHANNEL_ID = os.environ["TELEGRAM_CHANNEL_ID"]
 GROQ_API_KEY = os.environ["GROQ_API_KEY"]
 
 # ---------- НАСТРОЙКИ ДЕДУПЛИКАЦИИ ----------
-USED_FILE = "used_items.json"      # коммитится обратно в репозиторий после каждого запуска
-DEDUP_WINDOW_DAYS = 30             # храним отпечатки 30 дней, а не 24 часа
-SIMILARITY_THRESHOLD = 0.45        # доля общих значимых слов -> считаем дубликатом
+USED_FILE = "used_items.json"
+DEDUP_WINDOW_DAYS = 30
+SIMILARITY_THRESHOLD = 0.45
 
 STOPWORDS = {
     "a", "an", "the", "of", "in", "on", "at", "to", "for", "and", "or", "is", "are",
@@ -45,10 +45,6 @@ banned_phrases = [
 # ---------- ДЕДУПЛИКАЦИЯ ----------
 
 def normalize_title(title):
-    """Нижний регистр, убираем пунктуацию и стоп-слова, сортируем -
-    так заголовок 'T-Rex Fossil Found in Montana' и
-    'Rare T-Rex Fossil Discovered in Montana Site' дадут почти
-    одинаковый отпечаток, несмотря на то что RSS переписал заголовок."""
     title = (title or "").lower()
     title = re.sub(r'[^a-zа-яё0-9\s]', ' ', title)
     words = [w for w in title.split() if w not in STOPWORDS and len(w) > 2]
@@ -249,10 +245,17 @@ def generate_post(news_item):
             print(f"Пост отклонён: содержит запрещённую тему '{phrase}'.")
             return None
 
+    # ДВОЙНАЯ ПРОВЕРКА ЯЗЫКА – теперь точно не пропустит английский
     russian_chars = len(re.findall(r'[а-яёА-ЯЁ]', content))
     total_chars = len(re.sub(r'\s', '', content))
     if total_chars == 0 or russian_chars / total_chars < 0.5:
         print("Пост отклонён: меньше 50% русских букв. Язык не русский.")
+        return None
+
+    # Дополнительная проверка: если есть типично английские слова-паразиты
+    english_patterns = ["according to", "source:", "link:", "published", "reported by", "said in a statement"]
+    if any(pattern in content.lower() for pattern in english_patterns):
+        print("Пост отклонён: обнаружены английские фразы-паразиты.")
         return None
 
     content = re.sub(r'\n*О как\s*$', '', content).rstrip()
