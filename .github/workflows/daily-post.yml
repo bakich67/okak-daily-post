@@ -37,4 +37,3 @@ jobs:
           git add used_items.json
           git diff --cached --quiet || git commit -m "update used items [skip ci]"
           git push
-
