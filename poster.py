@@ -12,8 +12,8 @@ CHANNEL_ID = os.environ["TELEGRAM_CHANNEL_ID"]
 GROQ_API_KEY = os.environ["GROQ_API_KEY"]
 
 # ВАЖНО: llama-3.3-70b-versatile отключается Groq 16 августа 2026.
-# Используем рекомендованную самим Groq замену для этой модели.
-GROQ_MODEL = "openai/gpt-oss-120b"
+# Используем стабильную бесплатную модель.
+GROQ_MODEL = "llama-3.1-8b-instant"
 
 USED_FILE = "used_items.json"
 DEDUP_WINDOW_DAYS = 30
@@ -103,10 +103,6 @@ def is_political(title, description):
 
 
 # ---------- ПАРСИНГ RSS-ИСТОЧНИКОВ ----------
-# Snopes, ScienceDaily и Atlas Obscura отдают стандартный RSS/Atom формат,
-# поэтому одна generic-функция вместо отдельного скрейпера под каждый сайт.
-# Это надёжнее, чем BeautifulSoup-скрейпинг HTML: у GitHub Actions общие
-# IP-адреса раннеров, и защита от ботов (Cloudflare и т.п.) их часто режет.
 
 def parse_rss():
     try:
@@ -117,7 +113,7 @@ def parse_rss():
         return []
 
     all_items = []
-    cutoff_date = datetime.utcnow() - timedelta(days=3)  # окно шире 24ч: постим не каждый день
+    cutoff_date = datetime.utcnow() - timedelta(days=3)
 
     for source in sources:
         try:
@@ -157,7 +153,7 @@ def parse_rss():
                         if pub_date < cutoff_date:
                             continue
                     except Exception:
-                        pass  # если дату не распарсили - не отбрасываем, просто не фильтруем по ней
+                        pass
 
                 if not title or not link:
                     continue
@@ -310,4 +306,3 @@ if __name__ == "__main__":
                 print("Пост отправлен, отпечаток сохранён в used_items.json")
     except Exception as e:
         print(f"Критическая ошибка: {e}")
-
