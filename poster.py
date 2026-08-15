@@ -268,7 +268,9 @@ def generate_post(news_item):
         print("Пост отклонён: меньше 50% русских букв.")
         return None
 
-    content = re.sub(r'\n*О как\s*$', '', content).rstrip()
+        # Удаляем все повторяющиеся "О как" в конце (включая несколько подряд)
+    content = re.sub(r'(\s*О как\s*)+$', '', content, flags=re.IGNORECASE).rstrip()
+    # Добавляем ровно одну подпись
     content = content + "\n\nО как"
     return content
 
