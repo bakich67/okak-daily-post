@@ -268,12 +268,11 @@ def generate_post(news_item):
         print("Пост отклонён: меньше 50% русских букв.")
         return None
 
-        # Удаляем все повторяющиеся "О как" в конце (включая несколько подряд)
-    content = re.sub(r'(\s*О как\s*)+$', '', content, flags=re.IGNORECASE).rstrip()
+            # Удаляем любые варианты "О как" в конце (с точкой, восклицательным знаком, пробелами, в любом регистре)
+    content = re.sub(r'(?i)(\s*О как\s*[!.]?\s*)+$', '', content).rstrip()
     # Добавляем ровно одну подпись
     content = content + "\n\nО как"
     return content
-
 
 def send_to_telegram(text):
     url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
