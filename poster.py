@@ -11,8 +11,8 @@ BOT_TOKEN = os.environ["TELEGRAM_BOT_TOKEN"]
 CHANNEL_ID = os.environ["TELEGRAM_CHANNEL_ID"]
 GROQ_API_KEY = os.environ["GROQ_API_KEY"]
 
-# Используем актуальную production-модель Groq
-GROQ_MODEL = "openai/gpt-oss-20b"
+# Актуальная модель Groq
+GROQ_MODEL = "openai/gpt-oss-120b"
 
 USED_FILE = "used_items.json"
 DEDUP_WINDOW_DAYS = 30
@@ -25,7 +25,6 @@ STOPWORDS = {
     "where", "into", "over", "than", "then", "just", "more", "most"
 }
 
-# Страховка от политических тем
 POLITICAL_MARKERS = [
     "president", "senator", "congress", "governor", "mayor", "minister",
     "parliament", "election", "white house", "supreme court",
@@ -228,26 +227,22 @@ def generate_post(news_item):
 
     system_prompt = f"""Ты — редактор Telegram-канала «О как».
 {real_context}
-Напиши пост-разоблачение мифа (600–900 знаков) на основе предоставленной новости.
-ЖЁСТКИЕ ПРАВИЛА:
-- Пиши ТОЛЬКО на русском языке.
-- Не выдумывай факты.
-- Формат строго:
-  1. Миф: [одно предложение]
-  2. Факт: [опровержение с источником]
-  3. Ирония или гипотеза: [короткий вопрос]
-  4. Подпись: «О как»
-- Не используй "Вот это да!", "Невероятно!" и подобные фразы.
-- Стиль: сухо, с лёгкой иронией, как будто умный друг рассказывает."""
+Напиши пост (600–900 знаков) на русском языке. Разоблачи миф или расскажи удивительный факт.
+Формат:
+- Миф: одно предложение
+- Факт: опровержение с источником
+- Ирония или гипотеза: короткий вопрос
+Подпись: «О как»
+Не добавляй лишних заголовков и пояснений."""
 
     data = {
         "model": GROQ_MODEL,
         "messages": [
             {"role": "system", "content": system_prompt},
-            {"role": "user", "content": "Напиши пост для канала «О как» на основе предоставленной новости."}
+            {"role": "user", "content": "Напиши пост."}
         ],
         "temperature": 0.5,
-        "max_tokens": 1200
+        "max_tokens": 2000
     }
 
     response = requests.post(url, headers=headers, json=data, timeout=30)
@@ -261,7 +256,7 @@ def generate_post(news_item):
         print("Пустой ответ от Groq.")
         return None
 
-    # Фильтр русскоязычности
+    # Проверка на русский язык
     russian_chars = len(re.findall(r'[а-яёА-ЯЁ]', content))
     total_chars = len(re.sub(r'\s', '', content))
     if total_chars == 0 or russian_chars / total_chars < 0.5:
