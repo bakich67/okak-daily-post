@@ -11,9 +11,8 @@ BOT_TOKEN = os.environ["TELEGRAM_BOT_TOKEN"]
 CHANNEL_ID = os.environ["TELEGRAM_CHANNEL_ID"]
 GROQ_API_KEY = os.environ["GROQ_API_KEY"]
 
-# ВАЖНО: llama-3.3-70b-versatile отключается Groq 16 августа 2026.
-# Используем стабильную бесплатную модель.
-GROQ_MODEL = "openai/gpt-oss-120b"
+# Используем актуальную production-модель Groq
+GROQ_MODEL = "openai/gpt-oss-20b"
 
 USED_FILE = "used_items.json"
 DEDUP_WINDOW_DAYS = 30
@@ -26,9 +25,7 @@ STOPWORDS = {
     "where", "into", "over", "than", "then", "just", "more", "most"
 }
 
-# Страховка на случай, если в источники добавят Snopes или что-то ещё
-# с политическим уклоном. Если заголовок/описание задевает эти темы -
-# пропускаем, не публикуем.
+# Страховка от политических тем
 POLITICAL_MARKERS = [
     "president", "senator", "congress", "governor", "mayor", "minister",
     "parliament", "election", "white house", "supreme court",
@@ -39,7 +36,7 @@ POLITICAL_MARKERS = [
 RSS_SOURCES_FILE = "rss_sources.json"
 
 
-# ---------- ДЕДУПЛИКАЦИЯ (тот же принцип, что и в боте "О как") ----------
+# ---------- ДЕДУПЛИКАЦИЯ ----------
 
 def normalize_title(title):
     title = (title or "").lower()
@@ -102,7 +99,7 @@ def is_political(title, description):
     return any(marker in text for marker in POLITICAL_MARKERS)
 
 
-# ---------- ПАРСИНГ RSS-ИСТОЧНИКОВ ----------
+# ---------- ПАРСИНГ RSS ----------
 
 def parse_rss():
     try:
@@ -256,23 +253,27 @@ def generate_post(news_item):
     response = requests.post(url, headers=headers, json=data, timeout=30)
     if response.status_code != 200:
         raise Exception(f"Groq error: {response.text}")
+
     content = response.json()["choices"][0]["message"]["content"].strip()
+    print("Raw Groq response content:", repr(content))
 
     if not content or len(content) < 50:
         print("Пустой ответ от Groq.")
         return None
 
+    # Фильтр русскоязычности
     russian_chars = len(re.findall(r'[а-яёА-ЯЁ]', content))
     total_chars = len(re.sub(r'\s', '', content))
     if total_chars == 0 or russian_chars / total_chars < 0.5:
         print("Пост отклонён: меньше 50% русских букв.")
         return None
 
-            # Удаляем любые варианты "О как" в конце (с точкой, восклицательным знаком, пробелами, в любом регистре)
+    # Убираем повторяющиеся "О как" и добавляем одну подпись
     content = re.sub(r'(?i)(\s*О как\s*[!.]?\s*)+$', '', content).rstrip()
-    # Добавляем ровно одну подпись
     content = content + "\n\nО как"
+
     return content
+
 
 def send_to_telegram(text):
     url = f"https://api.telegram.org/bot{BOT_TOKEN}/sendMessage"
