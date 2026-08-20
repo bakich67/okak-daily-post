@@ -13,7 +13,7 @@ GROQ_API_KEY = os.environ["GROQ_API_KEY"]
 
 # ВАЖНО: llama-3.3-70b-versatile отключается Groq 16 августа 2026.
 # Используем стабильную бесплатную модель.
-GROQ_MODEL = "llama-3.1-8b-instant"
+GROQ_MODEL = "openai/gpt-oss-120b"
 
 USED_FILE = "used_items.json"
 DEDUP_WINDOW_DAYS = 30
