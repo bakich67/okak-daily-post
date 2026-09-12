@@ -68,10 +68,14 @@ def save_used_items(items):
         json.dump(items, f, ensure_ascii=False, indent=2)
 
 
-def is_duplicate(title, link, used_items):
+def is_duplicate(title, link, guid, used_items):
     norm_link = (link or "").split("?")[0].rstrip("/")
+    norm_guid = (guid or "").strip()
     new_words = set(normalize_title(title).split())
     for item in used_items:
+        old_guid = (item.get("guid") or "").strip()
+        if norm_guid and old_guid and norm_guid == old_guid:
+            return True
         old_link = (item.get("link") or "").split("?")[0].rstrip("/")
         if norm_link and old_link and norm_link == old_link:
             return True
@@ -83,10 +87,11 @@ def is_duplicate(title, link, used_items):
     return False
 
 
-def mark_used(title, link, used_items):
+def mark_used(title, link, guid, used_items):
     used_items.append({
         "title": title,
         "link": link,
+        "guid": guid,
         "norm": normalize_title(title),
         "date": datetime.utcnow().isoformat()
     })
@@ -124,6 +129,7 @@ def parse_rss():
             for item in items:
                 title_el = item.find("title")
                 link_el = item.find("link")
+                guid_el = item.find("guid")
                 desc_el = item.find("description")
                 if desc_el is None:
                     desc_el = item.find("{http://www.w3.org/2005/Atom}summary")
@@ -132,6 +138,7 @@ def parse_rss():
                 link = link_el.text if link_el is not None else (
                     link_el.get("href") if link_el is not None else ""
                 )
+                guid = guid_el.text if guid_el is not None and guid_el.text else ""
                 desc = desc_el.text if desc_el is not None and desc_el.text else ""
 
                 pub_date_str = ""
@@ -157,6 +164,7 @@ def parse_rss():
                 all_items.append({
                     "title": title.strip(),
                     "link": link.strip(),
+                    "guid": guid.strip(),
                     "description": re.sub(r'<[^>]+>', '', desc).strip()[:500],
                     "source": source["name"],
                     "topic": source.get("topic", "")
@@ -193,7 +201,7 @@ def select_best_myth(news_list, used_items):
 
     candidates = []
     for item in news_list:
-        if is_duplicate(item["title"], item["link"], used_items):
+        if is_duplicate(item["title"], item["link"], item.get("guid", ""), used_items):
             continue
         if is_political(item["title"], item["description"]):
             print(f"Пропущено (политический маркер): {item['title'][:80]}")
@@ -299,7 +307,7 @@ if __name__ == "__main__":
             else:
                 print("Сгенерирован пост:\n", post)
                 send_to_telegram(post)
-                mark_used(best_myth["title"], best_myth["link"], used_items)
+                mark_used(best_myth["title"], best_myth["link"], best_myth.get("guid", ""), used_items)
                 print("Пост отправлен, отпечаток сохранён в used_items.json")
     except Exception as e:
         print(f"Критическая ошибка: {e}")
