@@ -1,17 +1,5 @@
 [
   {
-    "title": "This 23-foot crocodylian may have ruled South America’s food chain",
-    "link": "https://www.sciencedaily.com/releases/2026/08/260819041226.htm",
-    "norm": "america chain crocodylian food foot may ruled south",
-    "date": "2026-08-20T02:47:07.342103"
-  },
-  {
-    "title": "A SpaceX rocket smashed into the Moon — NASA just revealed the crater",
-    "link": "https://www.sciencedaily.com/releases/2026/08/260820002429.htm",
-    "norm": "crater moon nasa revealed rocket smashed spacex",
-    "date": "2026-08-21T15:32:22.067695"
-  },
-  {
     "title": "Physicists create a tiny “Big Bang” with surprisingly small atomic nuclei",
     "link": "https://www.sciencedaily.com/releases/2026/08/260822015143.htm",
     "norm": "atomic bang big create nuclei physicists small surprisingly tiny",
@@ -86,5 +74,12 @@
     "guid": "https://www.sciencedaily.com/releases/2026/09/260915232134.htm",
     "norm": "brain cancer fight help hidden immune may organ skull",
     "date": "2026-09-18T18:05:29.773373"
+  },
+  {
+    "title": "Ancient DNA reveals how plague kept returning for 400 years after the Black Death",
+    "link": "https://www.sciencedaily.com/releases/2026/09/260919031025.htm",
+    "guid": "https://www.sciencedaily.com/releases/2026/09/260919031025.htm",
+    "norm": "400 ancient black death dna kept plague returning reveals years",
+    "date": "2026-09-21T19:52:22.917320"
   }
 ]
