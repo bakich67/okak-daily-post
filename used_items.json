@@ -1,11 +1,5 @@
 [
   {
-    "title": "Physicists create a tiny “Big Bang” with surprisingly small atomic nuclei",
-    "link": "https://www.sciencedaily.com/releases/2026/08/260822015143.htm",
-    "norm": "atomic bang big create nuclei physicists small surprisingly tiny",
-    "date": "2026-08-24T15:38:27.203708"
-  },
-  {
     "title": "Scientists find hidden “highways” guiding animal evolution",
     "link": "https://www.sciencedaily.com/releases/2026/08/260824065514.htm",
     "norm": "animal evolution find guiding hidden highways scientists",
@@ -81,5 +75,12 @@
     "guid": "https://www.sciencedaily.com/releases/2026/09/260919031025.htm",
     "norm": "400 ancient black death dna kept plague returning reveals years",
     "date": "2026-09-21T19:52:22.917320"
+  },
+  {
+    "title": "A strange circle on satellite maps turned out to be a 390-million-year-old impact crater",
+    "link": "https://www.sciencedaily.com/releases/2026/09/260921081101.htm",
+    "guid": "https://www.sciencedaily.com/releases/2026/09/260921081101.htm",
+    "norm": "390 circle crater impact maps million old out satellite strange turned year",
+    "date": "2026-09-23T18:52:23.665183"
   }
 ]
