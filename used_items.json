@@ -1,17 +1,5 @@
 [
   {
-    "title": "Scientists challenge a 70-year-old “lizard brain” myth",
-    "link": "https://www.sciencedaily.com/releases/2026/08/260829235958.htm",
-    "norm": "brain challenge lizard myth old scientists year",
-    "date": "2026-08-31T20:40:16.413324"
-  },
-  {
-    "title": "Mindfulness may lower blood pressure in just 8 weeks",
-    "link": "https://www.sciencedaily.com/releases/2026/09/260901010721.htm",
-    "norm": "blood lower may mindfulness pressure weeks",
-    "date": "2026-09-02T18:26:29.523060"
-  },
-  {
     "title": "Life uses 4 DNA letters. Scientists just made 8 work",
     "link": "https://www.sciencedaily.com/releases/2026/09/260904000310.htm",
     "norm": "dna letters life made scientists uses work",
@@ -91,5 +79,12 @@
     "guid": "https://www.sciencedaily.com/releases/2026/09/260929053531.htm",
     "norm": "ago bats europe evolved may million years",
     "date": "2026-09-30T19:51:32.895828"
+  },
+  {
+    "title": "Ancient Hon Chuong Cham Tower in De Gi, Vietnam",
+    "link": "https://www.atlasobscura.com/places/ancient-hon-chuong-cham-tower",
+    "guid": "https://www.atlasobscura.com/places/ancient-hon-chuong-cham-tower",
+    "norm": "ancient cham chuong hon tower vietnam",
+    "date": "2026-10-02T19:45:49.390490"
   }
 ]
