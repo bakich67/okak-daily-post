@@ -1,17 +1,5 @@
 [
   {
-    "title": "Life uses 4 DNA letters. Scientists just made 8 work",
-    "link": "https://www.sciencedaily.com/releases/2026/09/260904000310.htm",
-    "norm": "dna letters life made scientists uses work",
-    "date": "2026-09-07T19:00:38.963235"
-  },
-  {
-    "title": "A War of 1812 soldier buried his own arm. His real story is even stranger",
-    "link": "https://www.sciencedaily.com/releases/2026/09/260906170138.htm",
-    "norm": "1812 arm buried even his own real soldier story stranger war",
-    "date": "2026-09-09T18:19:25.610749"
-  },
-  {
     "title": "Ancient teeth reveal humans were getting high 25,000 years ago",
     "link": "https://www.sciencedaily.com/releases/2026/09/260909231705.htm",
     "norm": "000 ago ancient getting high humans reveal teeth years",
@@ -86,5 +74,12 @@
     "guid": "https://www.atlasobscura.com/places/ancient-hon-chuong-cham-tower",
     "norm": "ancient cham chuong hon tower vietnam",
     "date": "2026-10-02T19:45:49.390490"
+  },
+  {
+    "title": "Scientists warn a popular vitamin D supplement may have a hidden downside",
+    "link": "https://www.sciencedaily.com/releases/2026/10/261007232940.htm",
+    "guid": "https://www.sciencedaily.com/releases/2026/10/261007232940.htm",
+    "norm": "downside hidden may popular scientists supplement vitamin warn",
+    "date": "2026-10-09T19:59:44.602357"
   }
 ]
