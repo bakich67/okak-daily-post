@@ -1,12 +1,5 @@
 [
   {
-    "title": "Scientists discovered two bizarre new sea spiders that are “nightmare fuel”",
-    "link": "https://www.sciencedaily.com/releases/2026/09/260925005412.htm",
-    "guid": "https://www.sciencedaily.com/releases/2026/09/260925005412.htm",
-    "norm": "bizarre discovered fuel nightmare scientists sea spiders two",
-    "date": "2026-09-25T19:08:05.557117"
-  },
-  {
     "title": "160-million-year-old proteins show surprising power against superbugs",
     "link": "https://www.sciencedaily.com/releases/2026/09/260925093155.htm",
     "guid": "https://www.sciencedaily.com/releases/2026/09/260925093155.htm",
@@ -75,5 +68,12 @@
     "guid": "https://www.sciencedaily.com/releases/2026/10/261019093445.htm",
     "norm": "cave chinese creature discover eyeless ghostly hidden scientists",
     "date": "2026-10-23T18:53:38.049036"
+  },
+  {
+    "title": "A hidden bias in human language challenges 70 years of science",
+    "link": "https://www.sciencedaily.com/releases/2026/10/261023023738.htm",
+    "guid": "https://www.sciencedaily.com/releases/2026/10/261023023738.htm",
+    "norm": "bias challenges hidden human language science years",
+    "date": "2026-10-26T20:18:50.770207"
   }
 ]
