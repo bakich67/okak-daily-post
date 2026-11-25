@@ -1,12 +1,5 @@
 [
   {
-    "title": "A hidden bias in human language challenges 70 years of science",
-    "link": "https://www.sciencedaily.com/releases/2026/10/261023023738.htm",
-    "guid": "https://www.sciencedaily.com/releases/2026/10/261023023738.htm",
-    "norm": "bias challenges hidden human language science years",
-    "date": "2026-10-26T20:18:50.770207"
-  },
-  {
     "title": "Scientists reveal a hidden snakebite crisis killing up to 513,000 people a year",
     "link": "https://www.sciencedaily.com/releases/2026/10/261029072117.htm",
     "guid": "https://www.sciencedaily.com/releases/2026/10/261029072117.htm",
@@ -75,5 +68,12 @@
     "guid": "https://www.sciencedaily.com/releases/2026/11/261119194553.htm",
     "norm": "150 abbey buried coffin may mystery roman solved westminster year",
     "date": "2026-11-24T01:59:53.974861"
+  },
+  {
+    "title": "Strange new materials can crawl, walk, and dig like living creatures",
+    "link": "https://www.sciencedaily.com/releases/2026/11/261121221137.htm",
+    "guid": "https://www.sciencedaily.com/releases/2026/11/261121221137.htm",
+    "norm": "can crawl creatures dig like living materials strange walk",
+    "date": "2026-11-25T23:28:21.419662"
   }
 ]
